@@ -10,12 +10,15 @@ const login = async (req, res)=>{
         console.log('Reaching the Correct endpoint /login');
         const {email, password} = req.body;
         const isUserValid = await userModel.findOne({email});
+        
         if(!isUserValid) return res.status(404).send({msg: "Wrong Credentials"});
+       
         const result = await compare(password, isUserValid.password);
         if(result && isUserValid.role==='admin'){
             const access_token = jwt.sign({userId: isUserValid._id}, process.env.JWT_SECRET_KEY, {expiresIn: '4h'});
             return res.status(200).send({msg: 'Receiving from frontend', access_token, 'admin': isUserValid.name});
         }
+        
         return res.status(404).send({msg: 'Wrong Credentials'});
     }catch(err){
         console.log("/admin/login: ", err.message);
@@ -52,8 +55,9 @@ const adminAuth = async (req, res) => {
         const queryString = JSON.stringify(access_token);
         res.redirect(`https://adminside-production.up.railway.app?${queryString}`);
     }
-    else
+    else{
         res.status(400).send({ msg: "You are not authorized" });
+    }
 }
 
 const trafficReport = async (req, res)=>{
